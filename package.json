@@ -1,0 +1,84 @@
+{
+  "name": "cortana-metrics",
+  "version": "1.0.0",
+  "description": "A comprehensive npm module for capturing endpoint-related data including request body, response body, headers, and more. Includes CLI tools for managing OpenAPI specifications.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "example:basic": "node examples/basic-usage.js",
+    "example:advanced": "node examples/advanced-usage.js",
+    "example:openapi": "node examples/openapi-usage.js",
+    "example:single-file": "node examples/single-file-openapi.js",
+    "test:single-file": "node test-single-file.js",
+    "test:continuous": "node test-continuous-save.js",
+    "collections:list": "node cli.js list",
+    "collections:stats": "node cli.js stats",
+    "collections:export": "node cli.js export",
+    "collections:help": "node cli.js help"
+  },
+  "bin": {
+    "endpoint-capture": "./cli.js",
+    "ep-capture": "./cli.js"
+  },
+  "keywords": [
+    "endpoint",
+    "capture",
+    "request",
+    "response",
+    "headers",
+    "middleware",
+    "express",
+    "api",
+    "logging",
+    "monitoring",
+    "openapi",
+    "collection",
+    "testing",
+    "documentation",
+    "versioning",
+    "cli",
+    "command-line",
+    "tools"
+  ],
+  "author": "Yuvraj Chavan",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4"
+  },
+  "optionalDependencies": {
+    "@aws-sdk/client-s3": "^3.450.0",
+    "@azure/storage-blob": "^12.17.0",
+    "@google-cloud/storage": "^7.7.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "eslint": "^8.55.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/endpoint-capture.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/endpoint-capture/issues"
+  },
+  "homepage": "https://github.com/yourusername/endpoint-capture#readme",
+  "preferGlobal": true,
+  "files": [
+    "index.js",
+    "cli.js",
+    "collection-manager.js",
+    "openapi-generator.js",
+    "storage/",
+    "examples/",
+    "README.md"
+  ]
+}
