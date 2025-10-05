@@ -1703,28 +1703,6 @@ This means you can:
 - ✅ Use privately
 - ✅ Include in proprietary software
 
-## 🚀 Roadmap
-
-### Upcoming Features
-
-- **v1.1.0** (Q4 2025)
-  - 🌐 Support for Koa.js and Fastify frameworks
-  - 📊 OpenAPI/Swagger export format
-  - 🔄 Real-time OpenAPI specification updates
-  - 📈 Enhanced analytics dashboard
-
-- **v1.2.0** (Q1 2026)
-  - 🤖 AI-powered endpoint documentation generation
-  - 🔧 GraphQL endpoint support
-  - 🌍 Multi-language SDK generation
-  - 📱 Mobile app for collection management
-
-- **v2.0.0** (Q2 2026)
-  - 🏗️ Plugin architecture for extensibility
-  - ☁️ Cloud-based collection management
-  - 🔐 Advanced security scanning
-  - 📊 Machine learning insights
-
 ## 📞 Support & Community
 
 ### Getting Help
