@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/cortana-metrics.svg)](https://badge.fury.io/js/cortana-metrics)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen)](https://nodejs.org/)
-[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://github.com/yourusername/endpoint-capture)
+[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://github.com/LazyCoderBot/endpoint-capture)
 
 A comprehensive npm module for capturing endpoint-related data including request body, response body, headers, query parameters, and more. Perfect for API monitoring, debugging, logging, analytics, and **automatic OpenAPI specification generation**.
 
@@ -1649,7 +1649,7 @@ We welcome contributions! Here's how to get started:
 
 ```bash
 # 1. Fork and clone the repository
-git clone https://github.com/yourusername/endpoint-capture.git
+git clone https://github.com/LazyCoderBot/endpoint-capture.git
 cd endpoint-capture
 
 # 2. Install dependencies
@@ -1730,15 +1730,11 @@ This means you can:
 ### Getting Help
 
 - 📚 **Documentation**: Check this README and inline code comments
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/yourusername/endpoint-capture/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/yourusername/endpoint-capture/discussions)
-- 💬 **Community Chat**: [Discord Server](https://discord.gg/endpoint-capture)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/LazyCoderBot/endpoint-capture/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/LazyCoderBot/endpoint-capture/discussions)
 
 ### Quick Links
 
-- 🏠 **Homepage**: [https://endpoint-capture.dev](https://endpoint-capture.dev)
-- 📖 **Documentation**: [https://docs.endpoint-capture.dev](https://docs.endpoint-capture.dev)
-- 🎮 **Interactive Demo**: [https://demo.endpoint-capture.dev](https://demo.endpoint-capture.dev)
 - 📦 **NPM Package**: [https://www.npmjs.com/package/cortana-metrics](https://www.npmjs.com/package/cortana-metrics)
 
 ## 🙏 Acknowledgments
@@ -1752,16 +1748,16 @@ Special thanks to:
 
 ## 📊 Stats
 
-![GitHub stars](https://img.shields.io/github/stars/yourusername/endpoint-capture?style=social)
-![GitHub forks](https://img.shields.io/github/forks/yourusername/endpoint-capture?style=social)
-![GitHub issues](https://img.shields.io/github/issues/yourusername/endpoint-capture)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/yourusername/endpoint-capture)
+![GitHub stars](https://img.shields.io/github/stars/LazyCoderBot/endpoint-capture?style=social)
+![GitHub forks](https://img.shields.io/github/forks/LazyCoderBot/endpoint-capture?style=social)
+![GitHub issues](https://img.shields.io/github/issues/LazyCoderBot/endpoint-capture)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/LazyCoderBot/endpoint-capture)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by [Yuvraj Chavan](https://github.com/yourusername)**
+**Made with ❤️ by [Yuvraj Chavan](https://github.com/LazyCoderBot)**
 
 *If this project helped you, please consider giving it a ⭐ on GitHub!*
 
