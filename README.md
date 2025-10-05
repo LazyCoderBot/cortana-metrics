@@ -1,4 +1,4 @@
-# 🚀 Endpoint Capture (Cortana Metrics)
+# 🚀 Cortana Metrics (Endpoint Capture)
 
 [![npm version](https://badge.fury.io/js/cortana-metrics.svg)](https://badge.fury.io/js/cortana-metrics)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -235,22 +235,22 @@ npm run collections:help
 
 ```bash
 # List all collections and their statistics
-endpoint-capture list
+endpoint-capture list [base-dir]
 
 # Show detailed statistics for all collections
-endpoint-capture stats
+endpoint-capture stats [base-dir]
 
 # Export collections in various formats
-endpoint-capture export
+endpoint-capture export [base-dir] [format] [output-file]
 
 # Create version snapshots
-endpoint-capture version <version-name>
+endpoint-capture version <version-number> [base-dir]
 
 # Merge multiple collections
-endpoint-capture merge <collection1> <collection2> --output <merged-name>
+endpoint-capture merge <collection1> <collection2> ... <target-name>
 
 # Create manual backups
-endpoint-capture backup
+endpoint-capture backup [base-dir] [collection-name]
 
 # Show help
 endpoint-capture help
@@ -344,7 +344,7 @@ endpoint-capture export --format json --include-tests --include-scripts
 
 ### CLI Configuration
 
-You can configure CLI behavior with a `.endpoint-capture.json` file:
+You can configure CLI behavior with a `.cortana-metrics.json` file:
 
 ```json
 {
@@ -406,15 +406,15 @@ const capture = new EndpointCapture({
   openAPISpecOptions: {
     // Directory settings (for local storage)
     baseDir: './openapi-specs',    // Base directory for specifications
-    autoBackup: true,                    // Enable automatic backups
+    autoBackup: false,                    // Disabled by default for single file mode
     maxBackups: 5,                       // Maximum number of backups to keep
     
     // Collection behavior
-    singleFileMode: true,                // Use single file per collection
-    detectChanges: true,                 // Only update when endpoints change
+    singleFileMode: true,                // Use single file per collection (default)
+    detectChanges: false,                 // Always update single file (default)
     watchMode: true,                     // Enable real-time updates
     
-    // Storage configuration (NEW!)
+    // Storage configuration
     storage: {
       type: 'local',                     // Storage type: 'local', 's3', 'azure', 'gcs'
       options: {}                        // Storage-specific options
@@ -422,17 +422,19 @@ const capture = new EndpointCapture({
     
     // Default collection settings
     defaultCollectionOptions: {
-      collectionName: 'API Collection',  // Default collection name
+      title: 'API Documentation',        // Default API title
       version: '1.0.0',                 // Collection version
       groupByPath: true,                 // Group endpoints by path
-      includeTests: false,               // Include test scripts
-      includePreRequestScripts: false,   // Include pre-request scripts
-      autoSave: true                     // Auto-save collections
+      includeExamples: true,            // Include response examples
+      includeSchemas: true,              // Include request/response schemas
+      autoSave: true,                   // Auto-save collections
+      singleFileMode: true,             // Pass to generator
+      detectChanges: false              // Always update single file
     },
     
     // Collection organization rules
     collectionRules: {
-      defaultCollection: 'Main API',     // Default collection name
+      defaultCollection: 'API Documentation', // Default collection name
       versionBased: false,               // Create version-based collections
       pathBased: false,                  // Create path-based collections
       environmentBased: false,           // Create environment-based collections
@@ -973,12 +975,27 @@ console.log(requestData);
 //   timestamp: '2023-01-01 12:00:00.000',
 //   method: 'POST',
 //   url: '/api/users',
+//   originalUrl: '/api/users',
+//   baseUrl: '',
+//   path: '/api/users',
+//   protocol: 'http',
+//   secure: false,
+//   ip: '127.0.0.1',
+//   ips: ['127.0.0.1'],
+//   hostname: 'localhost',
+//   subdomains: [],
+//   startTime: 1672574400000,
 //   headers: { 'content-type': 'application/json' },
 //   query: { page: '1' },
 //   params: { id: '123' },
+//   cookies: { session: 'abc123' },
 //   body: { name: 'John Doe' },
-//   ip: '127.0.0.1',
-//   userAgent: 'Mozilla/5.0...'
+//   userAgent: 'Mozilla/5.0...',
+//   contentType: 'application/json',
+//   contentLength: '100',
+//   accept: 'application/json',
+//   acceptEncoding: 'gzip, deflate',
+//   acceptLanguage: 'en-US, en;q=0.9'
 // }
 ```
 
@@ -999,10 +1016,11 @@ console.log(responseData);
 //   timestamp: '2023-01-01 12:00:01.000',
 //   statusCode: 201,
 //   statusMessage: 'Created',
+//   endTime: 1672574401150,
 //   duration: 150,
 //   durationFormatted: '150ms',
 //   headers: { 'content-type': 'application/json' },
-//   body: { id: 1, name: 'John Doe' }
+//   body: { id: 1, name: 'John Doe' } // Only if res.locals.responseBody exists
 // }
 ```
 
@@ -1091,7 +1109,7 @@ const tableData = capture.exportData(endpointData, 'table');
 Creates a new EndpointCapture instance.
 
 ```javascript
-const { utils } = require('endpoint-capture');
+const { utils } = require('cortana-metrics');
 const capture = utils.create({ captureRequestBody: false });
 ```
 
@@ -1099,7 +1117,7 @@ const capture = utils.create({ captureRequestBody: false });
 Quickly captures endpoint data without creating an instance.
 
 ```javascript
-const { utils } = require('endpoint-capture');
+const { utils } = require('cortana-metrics');
 const data = utils.quickCapture(req, res);
 ```
 
@@ -1107,7 +1125,7 @@ const data = utils.quickCapture(req, res);
 Formats captured data for logging.
 
 ```javascript
-const { utils } = require('endpoint-capture');
+const { utils } = require('cortana-metrics');
 const logData = utils.formatForLogging(endpointData, 'info');
 console.log(logData.message); // "POST /api/users - 201 (150ms)"
 ```
@@ -1117,7 +1135,7 @@ console.log(logData.message); // "POST /api/users - 201 (150ms)"
 ### Custom Middleware with Database Storage
 
 ```javascript
-const { EndpointCapture } = require('endpoint-capture');
+const { EndpointCapture } = require('cortana-metrics');
 
 const capture = new EndpointCapture({
   sensitiveHeaders: ['authorization', 'x-api-key', 'cookie'],
@@ -1190,7 +1208,7 @@ app.use(capture.createMiddleware((data) => {
 ### Request/Response Logging
 
 ```javascript
-const { utils } = require('endpoint-capture');
+const { utils } = require('cortana-metrics');
 
 app.use((req, res, next) => {
   const originalSend = res.send;
