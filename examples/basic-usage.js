@@ -1,5 +1,5 @@
 const express = require('express');
-const { EndpointCapture, utils } = require('../index');
+const { EndpointCapture, utils } = require('cortana-metrics');
 
 const app = express();
 app.use(express.json());
