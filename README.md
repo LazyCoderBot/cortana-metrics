@@ -1744,10 +1744,10 @@ Special thanks to:
 
 ## 📊 Stats
 
-![GitHub stars](https://img.shields.io/github/stars/LazyCoderBot/endpoint-capture?style=social)
-![GitHub forks](https://img.shields.io/github/forks/LazyCoderBot/endpoint-capture?style=social)
-![GitHub issues](https://img.shields.io/github/issues/LazyCoderBot/endpoint-capture)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/LazyCoderBot/endpoint-capture)
+![GitHub stars](https://img.shields.io/github/stars/LazyCoderBot/cortana-metrics?style=social)
+![GitHub forks](https://img.shields.io/github/forks/LazyCoderBot/cortana-metrics?style=social)
+![GitHub issues](https://img.shields.io/github/issues/LazyCoderBot/cortana-metrics)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/LazyCoderBot/cortana-metrics)
 
 ---
 
