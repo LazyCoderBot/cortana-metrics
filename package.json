@@ -12,6 +12,8 @@
     "example:advanced": "node examples/advanced-usage.js",
     "example:openapi": "node examples/openapi-usage.js",
     "example:single-file": "node examples/single-file-openapi.js",
+    "example:fastify": "node examples/fastify-usage.js",
+    "example:fastify-advanced": "node examples/fastify-advanced-usage.js",
     "test:single-file": "node test-single-file.js",
     "test:continuous": "node test-continuous-save.js",
     "collections:list": "node cli.js list",
@@ -31,6 +33,7 @@
     "headers",
     "middleware",
     "express",
+    "fastify",
     "api",
     "logging",
     "monitoring",
@@ -53,12 +56,13 @@
   "optionalDependencies": {
     "@aws-sdk/client-s3": "^3.450.0",
     "@azure/storage-blob": "^12.17.0",
-    "@google-cloud/storage": "^7.7.0"
+    "@google-cloud/storage": "^7.7.0",
+    "fastify": "^4.29.1"
   },
   "devDependencies": {
+    "eslint": "^8.55.0",
     "jest": "^29.7.0",
-    "supertest": "^6.3.3",
-    "eslint": "^8.55.0"
+    "supertest": "^6.3.3"
   },
   "engines": {
     "node": ">=14.0.0"

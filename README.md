@@ -32,6 +32,7 @@ A comprehensive npm module for capturing endpoint-related data including request
 - 🚀 **Complete Endpoint Data Capture**: Request/response bodies, headers, query params, path params, cookies
 - 🔒 **Security-First**: Automatic sanitization of sensitive data (passwords, tokens, API keys)
 - ⚡ **Express.js Middleware**: Drop-in middleware for automatic capture
+- ⚡ **Fastify Plugin**: Native Fastify plugin for automatic capture
 - 📊 **Multiple Export Formats**: JSON, CSV, and table formats
 - 🎯 **Flexible Configuration**: Customizable capture options
 - 📈 **Performance Metrics**: Request duration and timing data
@@ -68,7 +69,8 @@ yarn add cortana-metrics
 
 ### Requirements
 - **Node.js**: >= 14.0.0
-- **Express.js**: >= 4.0.0 (for middleware functionality)
+- **Express.js**: >= 4.0.0 (for Express middleware functionality)
+- **Fastify**: >= 4.0.0 (for Fastify plugin functionality, optional)
 
 ### Cloud Storage Dependencies (Optional)
 Install additional packages for cloud storage support:
@@ -140,6 +142,54 @@ app.listen(3000, () => {
 ```
 
 **That's it!** 🎉 Your API endpoints will now be automatically captured and converted into OpenAPI 3.0 specifications as you use them.
+
+### Fastify Quick Start
+
+```javascript
+const fastify = require('fastify')({ logger: true });
+const { EndpointCapture } = require('cortana-metrics');
+
+// 🎯 One-line setup with automatic OpenAPI specification generation
+const capture = new EndpointCapture({
+  generateOpenAPISpec: true, // Enable automatic specification generation
+  openAPISpecOptions: {
+    baseDir: './fastify-openapi-specs',
+    collectionRules: {
+      defaultCollection: 'Fastify API'
+    }
+  }
+});
+
+// 🔄 Register Fastify plugin for automatic capture and collection generation
+fastify.register(capture.createFastifyPlugin((data) => {
+  console.log(`📊 ${data.request.method} ${data.request.url} - ${data.response.statusCode} (${data.response.duration}ms)`);
+}));
+
+// 🛠️ Your API routes (collections will be generated automatically)
+fastify.get('/api/users', async (request, reply) => {
+  return { users: [{ id: 1, name: 'John Doe' }] };
+});
+
+fastify.post('/api/users', async (request, reply) => {
+  const { name } = request.body;
+  reply.status(201);
+  return { id: 2, name };
+});
+
+// Start the server
+const start = async () => {
+  try {
+    await fastify.listen({ port: 3000, host: '0.0.0.0' });
+    console.log('🚀 Fastify server running on http://localhost:3000');
+    console.log('📋 OpenAPI specifications will be saved to ./fastify-openapi-specs/');
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();
+```
 
 ### Basic Usage (Manual Capture)
 
@@ -1058,6 +1108,69 @@ app.use(capture.createMiddleware((data) => {
 }));
 ```
 
+##### `createFastifyPlugin(callback)`
+Creates Fastify plugin for automatic endpoint capture.
+
+**Parameters:**
+- `callback` (Function): Optional callback to handle captured data
+
+**Returns:** Fastify plugin function
+
+**Example:**
+```javascript
+fastify.register(capture.createFastifyPlugin((data) => {
+  // Handle captured data
+  console.log('Endpoint captured:', data);
+}));
+```
+
+##### `captureFastifyRequest(request)`
+Captures request data from Fastify request object.
+
+**Parameters:**
+- `request` (Object): Fastify request object
+
+**Returns:** Object containing captured request data
+
+**Example:**
+```javascript
+const requestData = capture.captureFastifyRequest(request);
+console.log(requestData);
+```
+
+##### `captureFastifyResponse(reply, originalRequestData)`
+Captures response data from Fastify reply object.
+
+**Parameters:**
+- `reply` (Object): Fastify reply object
+- `originalRequestData` (Object): Original request data (optional, for timing)
+
+**Returns:** Object containing captured response data
+
+**Example:**
+```javascript
+const responseData = capture.captureFastifyResponse(reply, requestData);
+console.log(responseData);
+```
+
+##### `captureFastifyEndpointData(request, reply, additionalData)`
+Captures complete endpoint data from Fastify (request + response).
+
+**Parameters:**
+- `request` (Object): Fastify request object
+- `reply` (Object): Fastify reply object
+- `additionalData` (Object): Additional metadata (optional)
+
+**Returns:** Object containing complete endpoint data
+
+**Example:**
+```javascript
+const endpointData = capture.captureFastifyEndpointData(request, reply, {
+  userId: 'user123',
+  sessionId: 'session456'
+});
+```
+
 ##### `getSummary(endpointData)`
 Returns a summary of captured endpoint data.
 
@@ -1119,6 +1232,14 @@ Quickly captures endpoint data without creating an instance.
 ```javascript
 const { utils } = require('cortana-metrics');
 const data = utils.quickCapture(req, res);
+```
+
+#### `utils.quickCaptureFastify(request, reply, options)`
+Quickly captures Fastify endpoint data without creating an instance.
+
+```javascript
+const { utils } = require('cortana-metrics');
+const data = utils.quickCaptureFastify(request, reply);
 ```
 
 #### `utils.formatForLogging(endpointData, level)`
@@ -1437,7 +1558,28 @@ app.use('/admin', someOtherMiddleware);       // Skip /admin/* routes
 
 #### Q: Can I use this with frameworks other than Express?
 
-**A**: Currently, the middleware is designed for Express.js. However, you can use the manual capture methods with any Node.js framework:
+**A**: Yes! The package now supports both Express.js and Fastify:
+
+**Express.js:**
+```javascript
+const { EndpointCapture } = require('cortana-metrics');
+const capture = new EndpointCapture();
+
+// Express middleware
+app.use(capture.createMiddleware());
+```
+
+**Fastify:**
+```javascript
+const { EndpointCapture } = require('cortana-metrics');
+const capture = new EndpointCapture();
+
+// Fastify plugin
+fastify.register(capture.createFastifyPlugin());
+```
+
+**Other frameworks:**
+You can use the manual capture methods with any Node.js framework:
 
 ```javascript
 const { utils } = require('cortana-metrics');

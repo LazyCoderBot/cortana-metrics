@@ -205,6 +205,112 @@ class EndpointCapture {
   }
 
   /**
+   * Capture request data from Fastify request object
+   * Extracts and sanitizes request information including headers, body, and metadata
+   * @param {Object} request - Fastify request object
+   * @param {string} request.method - HTTP method
+   * @param {string} request.url - Request URL
+   * @param {string} request.routerPath - Router path
+   * @param {string} request.routerMethod - Router method
+   * @param {string} request.protocol - Protocol (http/https)
+   * @param {boolean} request.secure - Whether connection is secure
+   * @param {string} request.ip - Client IP address
+   * @param {Array} request.ips - Client IP addresses
+   * @param {string} request.hostname - Hostname
+   * @param {Object} request.headers - Request headers
+   * @param {Object} request.query - Query parameters
+   * @param {Object} request.params - Path parameters
+   * @param {Object} request.cookies - Cookies
+   * @param {Object} request.body - Request body
+   * @returns {Object} Captured request data with sanitized sensitive information
+   * @returns {string} returns.timestamp - Formatted timestamp
+   * @returns {string} returns.method - HTTP method
+   * @returns {string} returns.url - Request URL
+   * @returns {string} returns.originalUrl - Original URL (same as url for Fastify)
+   * @returns {string} returns.baseUrl - Base URL
+   * @returns {string} returns.path - Request path
+   * @returns {string} returns.protocol - Protocol
+   * @returns {boolean} returns.secure - Whether secure
+   * @returns {string} returns.ip - Client IP
+   * @returns {Array} returns.ips - Client IPs
+   * @returns {string} returns.hostname - Hostname
+   * @returns {Array} returns.subdomains - Subdomains (empty for Fastify)
+   * @returns {number} returns.startTime - Request start time
+   * @returns {Object} [returns.headers] - Sanitized headers (if enabled)
+   * @returns {Object} [returns.query] - Query parameters (if enabled)
+   * @returns {Object} [returns.params] - Path parameters (if enabled)
+   * @returns {Object} [returns.cookies] - Cookies (if enabled)
+   * @returns {Object} [returns.body] - Sanitized request body (if enabled)
+   * @returns {string} returns.userAgent - User agent string
+   * @returns {string} returns.contentType - Content type
+   * @returns {string} returns.contentLength - Content length
+   * @returns {string} returns.accept - Accept header
+   * @returns {string} returns.acceptEncoding - Accept encoding
+   * @returns {string} returns.acceptLanguage - Accept language
+   */
+  captureFastifyRequest(request) {
+    if (!request || typeof request !== 'object') {
+      throw new Error('Fastify request object is required and must be an object');
+    }
+    
+    if (!request.method || !request.url) {
+      throw new Error('Fastify request object must have method and url properties');
+    }
+    
+    const startTime = Date.now();
+    const requestData = {
+      timestamp: moment().format(this.options.timestampFormat),
+      method: request.method,
+      url: request.url,
+      originalUrl: request.url, // Fastify doesn't have originalUrl, use url
+      baseUrl: request.routerPath || '',
+      path: request.routerPath || request.url,
+      protocol: request.protocol,
+      secure: request.secure,
+      ip: request.ip,
+      ips: request.ips || [],
+      hostname: request.hostname,
+      subdomains: [], // Fastify doesn't have subdomains array
+      startTime
+    };
+
+    // Capture headers
+    if (this.options.captureHeaders) {
+      requestData.headers = this._sanitizeHeaders(request.headers);
+    }
+
+    // Capture query parameters
+    if (this.options.captureQueryParams) {
+      requestData.query = request.query;
+    }
+
+    // Capture path parameters
+    if (this.options.capturePathParams) {
+      requestData.params = request.params;
+    }
+
+    // Capture cookies
+    if (this.options.captureCookies) {
+      requestData.cookies = request.cookies;
+    }
+
+    // Capture request body
+    if (this.options.captureRequestBody && request.body) {
+      requestData.body = this._sanitizeBody(request.body);
+    }
+
+    // Capture user agent and other request info
+    requestData.userAgent = request.headers['user-agent'];
+    requestData.contentType = request.headers['content-type'];
+    requestData.contentLength = request.headers['content-length'];
+    requestData.accept = request.headers.accept;
+    requestData.acceptEncoding = request.headers['accept-encoding'];
+    requestData.acceptLanguage = request.headers['accept-language'];
+
+    return requestData;
+  }
+
+  /**
    * Capture response data from Express response object
    * Extracts response information including status, headers, and timing
    * @param {Object} res - Express response object
@@ -252,6 +358,71 @@ class EndpointCapture {
   }
 
   /**
+   * Capture response data from Fastify reply object
+   * Extracts response information including status, headers, and timing
+   * @param {Object} reply - Fastify reply object
+   * @param {number} reply.statusCode - HTTP status code
+   * @param {Object} reply.getHeaders - Method to get response headers
+   * @param {Object} [originalRequestData={}] - Original request data for timing calculation
+   * @param {number} [originalRequestData.startTime] - Request start time for duration calculation
+   * @returns {Object} Captured response data
+   * @returns {string} returns.timestamp - Formatted timestamp
+   * @returns {number} returns.statusCode - HTTP status code
+   * @returns {string} returns.statusMessage - HTTP status message
+   * @returns {number} returns.endTime - Response end time
+   * @returns {number} [returns.duration] - Request duration in milliseconds
+   * @returns {string} [returns.durationFormatted] - Human-readable duration
+   * @returns {Object} [returns.headers] - Response headers (if enabled)
+   * @returns {Object} [returns.body] - Response body (if available and enabled)
+   */
+  captureFastifyResponse(reply, originalRequestData = {}) {
+    const endTime = Date.now();
+    const responseData = {
+      timestamp: moment().format(this.options.timestampFormat),
+      statusCode: reply.statusCode,
+      statusMessage: reply.statusMessage || this._getStatusMessage(reply.statusCode),
+      endTime
+    };
+
+    // Calculate timing if we have start time
+    if (originalRequestData.startTime) {
+      responseData.duration = endTime - originalRequestData.startTime;
+      responseData.durationFormatted = this._formatDuration(responseData.duration);
+    }
+
+    // Capture response headers
+    if (this.options.captureHeaders) {
+      responseData.headers = this._sanitizeHeaders(reply.getHeaders());
+    }
+
+    // Capture response body if available
+    if (this.options.captureResponseBody && reply.locals && reply.locals.responseBody) {
+      responseData.body = this._sanitizeBody(reply.locals.responseBody);
+    }
+
+    return responseData;
+  }
+
+  /**
+   * Get HTTP status message for status code
+   * @param {number} statusCode - HTTP status code
+   * @returns {string} Status message
+   * @private
+   */
+  _getStatusMessage(statusCode) {
+    const statusMessages = {
+      200: 'OK',
+      201: 'Created',
+      400: 'Bad Request',
+      401: 'Unauthorized',
+      403: 'Forbidden',
+      404: 'Not Found',
+      500: 'Internal Server Error'
+    };
+    return statusMessages[statusCode] || 'Unknown';
+  }
+
+  /**
    * Capture complete endpoint data (request + response)
    * Combines request and response data into a complete endpoint capture
    * @param {Object} req - Express request object
@@ -268,6 +439,35 @@ class EndpointCapture {
   captureEndpointData(req, res, additionalData = {}) {
     const requestData = this.captureRequest(req);
     const responseData = this.captureResponse(res, requestData);
+
+    return {
+      request: requestData,
+      response: responseData,
+      metadata: {
+        capturedAt: moment().format(this.options.timestampFormat),
+        version: '1.0.0',
+        ...additionalData
+      }
+    };
+  }
+
+  /**
+   * Capture complete endpoint data from Fastify (request + response)
+   * Combines Fastify request and response data into a complete endpoint capture
+   * @param {Object} request - Fastify request object
+   * @param {Object} reply - Fastify reply object
+   * @param {Object} [additionalData={}] - Any additional data to include in metadata
+   * @returns {Object} Complete endpoint data
+   * @returns {Object} returns.request - Captured request data
+   * @returns {Object} returns.response - Captured response data
+   * @returns {Object} returns.metadata - Additional metadata
+   * @returns {string} returns.metadata.capturedAt - Capture timestamp
+   * @returns {string} returns.metadata.version - Capture version
+   * @returns {Object} [returns.metadata.*] - Additional metadata properties
+   */
+  captureFastifyEndpointData(request, reply, additionalData = {}) {
+    const requestData = this.captureFastifyRequest(request);
+    const responseData = this.captureFastifyResponse(reply, requestData);
 
     return {
       request: requestData,
@@ -340,6 +540,72 @@ class EndpointCapture {
       });
 
       next();
+    };
+  }
+
+  /**
+   * Create Fastify plugin for automatic endpoint capture
+   * Creates a Fastify plugin that automatically captures request/response data and optionally adds to OpenAPI specifications
+   * @param {Function} [callback] - Optional callback to handle captured data
+   * @param {Function} callback.endpointData - Captured endpoint data
+   * @param {Object} callback.request - Fastify request object
+   * @param {Object} callback.reply - Fastify reply object
+   * @returns {Function} Fastify plugin function
+   * @returns {Function} returns - Fastify plugin function that captures endpoint data
+   * @example
+   * const capture = new EndpointCapture();
+   * fastify.register(capture.createFastifyPlugin((endpointData, request, reply) => {
+   *   console.log('Captured:', endpointData.request.method, endpointData.request.url);
+   * }));
+   */
+  createFastifyPlugin(callback) {
+    const self = this;
+    return async function(fastify, options) {
+      // Add preHandler hook to capture request data
+      fastify.addHook('preHandler', async (request, reply) => {
+        // Store original request data
+        request.endpointCapture = self.captureFastifyRequest(request);
+
+        // Override reply.send to capture response body
+        const originalSend = reply.send;
+        reply.send = function(payload) {
+          reply.locals = reply.locals || {};
+          reply.locals.responseBody = payload;
+          return originalSend.call(this, payload);
+        };
+      });
+
+      // Add onSend hook to capture response data
+      fastify.addHook('onSend', async (request, reply, payload) => {
+        // Store response body for capture
+        reply.locals = reply.locals || {};
+        reply.locals.responseBody = payload;
+      });
+
+      // Add onResponse hook to process captured data
+      fastify.addHook('onResponse', async (request, reply) => {
+        const endpointData = self.captureFastifyEndpointData(request, reply);
+
+        // Add to request object for access in routes
+        request.capturedEndpointData = endpointData;
+
+        // Generate OpenAPI specification if enabled
+        if (self.options.generateOpenAPISpec && self.collectionManager) {
+          try {
+            self.collectionManager.addEndpointWithRules(
+              endpointData,
+              self.options.openAPISpecOptions.collectionRules
+            );
+          } catch (error) {
+            console.error('Error adding endpoint to OpenAPI specification:', error);
+          }
+        }
+
+        // Call callback if provided
+        if (callback && typeof callback === 'function') {
+          callback(endpointData, request, reply);
+        }
+      });
     };
   }
 
@@ -652,6 +918,21 @@ const utils = {
   quickCapture: (req, res, options = {}) => {
     const capture = new EndpointCapture(options);
     return capture.captureEndpointData(req, res);
+  },
+
+  /**
+   * Quick capture function for Fastify
+   * Convenience function for capturing Fastify endpoint data without creating an instance
+   * @param {Object} request - Fastify request object
+   * @param {Object} reply - Fastify reply object
+   * @param {Object} [options={}] - Configuration options for capture
+   * @returns {Object} Captured endpoint data
+   * @example
+   * const data = utils.quickCaptureFastify(request, reply, { captureRequestBody: false });
+   */
+  quickCaptureFastify: (request, reply, options = {}) => {
+    const capture = new EndpointCapture(options);
+    return capture.captureFastifyEndpointData(request, reply);
   },
 
   /**
