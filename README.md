@@ -1734,8 +1734,6 @@ Special thanks to:
 
 <div align="center">
 
-**Made with ❤️ by [Yuvraj Chavan](https://github.com/LazyCoderBot)**
-
 *If this project helped you, please consider giving it a ⭐ on GitHub!*
 
 </div>
