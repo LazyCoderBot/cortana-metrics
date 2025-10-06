@@ -1,6 +1,6 @@
 {
   "name": "cortana-metrics",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A comprehensive npm module for capturing endpoint-related data including request body, response body, headers, and more. Includes CLI tools for managing OpenAPI specifications.",
   "main": "index.js",
   "scripts": {
