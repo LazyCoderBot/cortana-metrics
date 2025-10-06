@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/cortana-metrics.svg)](https://badge.fury.io/js/cortana-metrics)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen)](https://nodejs.org/)
-[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://github.com/LazyCoderBot/endpoint-capture)
+[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://github.com/LazyCoderBot/cortana-metrics)
 
 A comprehensive npm module for capturing endpoint-related data including request body, response body, headers, query parameters, and more. Perfect for API monitoring, debugging, logging, analytics, and **automatic OpenAPI specification generation**.
 
@@ -90,11 +90,11 @@ npm install @aws-sdk/client-s3 @azure/storage-blob @google-cloud/storage
 ### Verify Installation
 ```bash
 # Check if CLI is available
-npx endpoint-capture help
+npx cortana-metrics help
 
 # Or if installed globally
 npm install -g cortana-metrics
-endpoint-capture help
+cortana-metrics help
 ```
 
 ## 🚀 Quick Start
@@ -217,7 +217,7 @@ The package includes a powerful CLI for managing OpenAPI specifications. After i
 npm install -g cortana-metrics
 
 # Now you can use these commands from anywhere:
-endpoint-capture --help
+cortana-metrics --help
 ep-capture --help
 ```
 
@@ -227,7 +227,7 @@ ep-capture --help
 npm install cortana-metrics
 
 # Use via npx or npm scripts
-npx endpoint-capture --help
+npx cortana-metrics --help
 npm run collections:help
 ```
 
@@ -235,25 +235,25 @@ npm run collections:help
 
 ```bash
 # List all collections and their statistics
-endpoint-capture list [base-dir]
+cortana-metrics list [base-dir]
 
 # Show detailed statistics for all collections
-endpoint-capture stats [base-dir]
+cortana-metrics stats [base-dir]
 
 # Export collections in various formats
-endpoint-capture export [base-dir] [format] [output-file]
+cortana-metrics export [base-dir] [format] [output-file]
 
 # Create version snapshots
-endpoint-capture version <version-number> [base-dir]
+cortana-metrics version <version-number> [base-dir]
 
 # Merge multiple collections
-endpoint-capture merge <collection1> <collection2> ... <target-name>
+cortana-metrics merge <collection1> <collection2> ... <target-name>
 
 # Create manual backups
-endpoint-capture backup [base-dir] [collection-name]
+cortana-metrics backup [base-dir] [collection-name]
 
 # Show help
-endpoint-capture help
+cortana-metrics help
 ```
 
 ### 🔍 Analyzing Collections in Different Directories
@@ -262,26 +262,26 @@ The CLI can analyze OpenAPI specifications stored in any directory:
 
 ```bash
 # Analyze collections in current directory
-endpoint-capture list .
-endpoint-capture stats .
+cortana-metrics list .
+cortana-metrics stats .
 
 # Analyze collections in examples directory
-endpoint-capture list ./examples
-endpoint-capture stats ./examples
+cortana-metrics list ./examples
+cortana-metrics stats ./examples
 
 # Analyze collections in custom directory
-endpoint-capture list ./my-api-collections
-endpoint-capture stats ./my-api-collections
+cortana-metrics list ./my-api-collections
+cortana-metrics stats ./my-api-collections
 
 # Export collections from specific directory
-endpoint-capture export ./examples json ./exports/
+cortana-metrics export ./examples json ./exports/
 ```
 
 ### 📋 CLI Examples
 
 #### 📊 View Collection Statistics
 ```bash
-$ endpoint-capture stats
+$ cortana-metrics stats
 
 📊 OpenAPI Specification Statistics
 ================================
@@ -303,7 +303,7 @@ $ endpoint-capture stats
 
 #### 📋 List Collections
 ```bash
-$ endpoint-capture list
+$ cortana-metrics list
 
 📚 Available OpenAPI Specifications:
 ==================================
@@ -320,7 +320,7 @@ $ endpoint-capture list
 
 #### 🔄 Create Version Snapshot
 ```bash
-$ endpoint-capture version v2.1.0
+$ cortana-metrics version v2.1.0
 
 ✅ Version snapshots created:
 ├── 📄 Main_API_v2.1.0.json (15 endpoints)
@@ -333,13 +333,13 @@ $ endpoint-capture version v2.1.0
 #### 📤 Export Collections
 ```bash
 # Export all collections as JSON
-endpoint-capture export --format json --output ./exports/
+cortana-metrics export --format json --output ./exports/
 
 # Export specific collection
-endpoint-capture export --collection "Main API" --format json
+cortana-metrics export --collection "Main API" --format json
 
 # Export with custom options
-endpoint-capture export --format json --include-tests --include-scripts
+cortana-metrics export --format json --include-tests --include-scripts
 ```
 
 ### CLI Configuration
@@ -662,7 +662,7 @@ jobs:
         run: npm test
         
       - name: Export OpenAPI specifications
-        run: npx endpoint-capture export --format json --output ./docs/openapi/
+        run: npx cortana-metrics export --format json --output ./docs/openapi/
         
       - name: Commit updated collections
         run: |
@@ -807,7 +807,7 @@ const capture2 = new EndpointCapture({
 });
 
 // Later, merge all microservice collections
-// npx endpoint-capture merge "User Service API" "Payment Service API" --output "Complete API"
+// npx cortana-metrics merge "User Service API" "Payment Service API" --output "Complete API"
 ```
 
 ### 🔐 API Security Auditing
@@ -945,7 +945,7 @@ app.use(capture.createMiddleware((data) => {
 }));
 
 // Create version snapshots before deployments
-// npx endpoint-capture version "pre-deployment-$(date +%Y%m%d)"
+// npx cortana-metrics version "pre-deployment-$(date +%Y%m%d)"
 ```
 
 ## 📚 API Reference
@@ -1293,7 +1293,7 @@ res.json = function(body) {
 
 #### ❓ CLI commands not working
 
-**Problem**: `endpoint-capture` command not found.
+**Problem**: `cortana-metrics` command not found.
 
 **Solutions**:
 ```bash
@@ -1301,7 +1301,7 @@ res.json = function(body) {
 npm install -g cortana-metrics
 
 # 2. Use npx for local installation
-npx endpoint-capture help
+npx cortana-metrics help
 
 # 3. Check if binary is properly linked
 npm link cortana-metrics
@@ -1507,7 +1507,7 @@ const userAPI = capture.addToOpenAPISpec('User API', endpointData);
 
 // Use CLI programmatically
 const { exec } = require('child_process');
-exec('npx endpoint-capture export --format json', (error, stdout) => {
+exec('npx cortana-metrics export --format json', (error, stdout) => {
   console.log('Export result:', stdout);
 });
 ```
@@ -1667,8 +1667,8 @@ We welcome contributions! Here's how to get started:
 
 ```bash
 # 1. Fork and clone the repository
-git clone https://github.com/LazyCoderBot/endpoint-capture.git
-cd endpoint-capture
+git clone https://github.com/LazyCoderBot/cortana-metrics.git
+cd cortana-metrics
 
 # 2. Install dependencies
 npm install
@@ -1726,8 +1726,8 @@ This means you can:
 ### Getting Help
 
 - 📚 **Documentation**: Check this README and inline code comments
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/LazyCoderBot/endpoint-capture/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/LazyCoderBot/endpoint-capture/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/LazyCoderBot/cortana-metrics/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/LazyCoderBot/cortana-metrics/discussions)
 
 ### Quick Links
 

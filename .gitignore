@@ -97,3 +97,4 @@ ehthumbs.db
 Thumbs.db
 openapi-specs/*
 examples/openapi-specs
+package-lock.json
