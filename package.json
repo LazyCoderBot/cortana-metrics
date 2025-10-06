@@ -1,6 +1,6 @@
 {
   "name": "cortana-metrics",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A comprehensive npm module for capturing endpoint-related data including request body, response body, headers, and more. Includes CLI tools for managing OpenAPI specifications.",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "collections:help": "node cli.js help"
   },
   "bin": {
-    "endpoint-capture": "./cli.js",
+    "cortana-metrics": "./cli.js",
     "ep-capture": "./cli.js"
   },
   "keywords": [
@@ -65,12 +65,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/LazyCoderBot/endpoint-capture.git"
+    "url": "https://github.com/LazyCoderBot/cortana-metrics.git"
   },
   "bugs": {
-    "url": "https://github.com/LazyCoderBot/endpoint-capture/issues"
+    "url": "https://github.com/LazyCoderBot/cortana-metrics/issues"
   },
-  "homepage": "https://github.com/LazyCoderBot/endpoint-capture#readme",
+  "homepage": "https://github.com/LazyCoderBot/cortana-metrics#readme",
   "preferGlobal": true,
   "files": [
     "index.js",
