@@ -1534,15 +1534,6 @@ const capture = new EndpointCapture({
 });
 ```
 
-#### Q: What are the costs and best practices for cloud storage?
-
-**A**: Cloud storage costs are typically very low for OpenAPI specifications:
-
-**Cost Estimates:**
-- **S3**: ~$0.023 per GB/month + ~$0.0004 per 1,000 requests
-- **Azure Blob**: ~$0.018 per GB/month + ~$0.0004 per 10,000 transactions  
-- **GCS**: ~$0.020 per GB/month + ~$0.0004 per 1,000 operations
-
 **Best Practices:**
 ```javascript
 // 1. Use lifecycle policies to manage old versions
@@ -1710,16 +1701,6 @@ npm run lint
 # Auto-fix linting issues
 npm run lint:fix
 ```
-
-## 📄 License
-
-**MIT License** - see the [LICENSE](LICENSE) file for details.
-
-This means you can:
-- ✅ Use commercially
-- ✅ Modify and distribute
-- ✅ Use privately
-- ✅ Include in proprietary software
 
 ## 📞 Support & Community
 
