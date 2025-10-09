@@ -71,6 +71,8 @@ app.use(capture.createMiddleware((data) => {
     console.log(`   Found ${data.request.sensitiveFields.length} sensitive fields:`);
     data.request.sensitiveFields.forEach(field => {
       console.log(`   - ${field.path}: ${field.type} (${field.field})`);
+      console.log(`     Sanitized: [REDACTED]`);
+      console.log(`     Actual: ${field.actualValue}`);
     });
   }
   
@@ -91,8 +93,11 @@ app.use(capture.createMiddleware((data) => {
     analyzeTypes(data.request.bodyTypes);
   }
   
-  console.log('\n📋 SANITIZED REQUEST BODY:');
+  console.log('\n📋 SANITIZED REQUEST BODY (Safe to store):');
   console.log(JSON.stringify(data.request.body, null, 2));
+  
+  console.log('\n🔍 ACTUAL REQUEST BODY (For reference):');
+  console.log(JSON.stringify(data.request.bodyActual, null, 2));
   
   console.log('\n📋 SANITIZED HEADERS:');
   console.log(JSON.stringify(data.request.headers, null, 2));
@@ -190,6 +195,7 @@ app.listen(PORT, () => {
   console.log('   ✅ S3 storage with IAM roles');
   console.log('   ✅ Custom field sanitization');
   console.log('   ✅ Actual value capture with security');
+  console.log('   ✅ Dual data capture (sanitized + actual)');
   console.log('');
   console.log('🧪 Test endpoints:');
   console.log('POST /api/users (with sensitive user data)');

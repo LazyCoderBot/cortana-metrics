@@ -192,6 +192,7 @@ class EndpointCapture {
     if (this.options.captureRequestBody && req.body) {
       const enhancedBody = this._enhanceDataCapture(req.body);
       requestData.body = enhancedBody.sanitized;
+      requestData.bodyActual = enhancedBody.actual; // Store actual values for reference
       requestData.bodyTypes = enhancedBody.types;
       requestData.hasSensitiveData = enhancedBody.hasSensitiveData;
       requestData.sensitiveFields = enhancedBody.sensitiveFields;
@@ -251,6 +252,7 @@ class EndpointCapture {
     if (this.options.captureResponseBody && res.locals && res.locals.responseBody) {
       const enhancedBody = this._enhanceDataCapture(res.locals.responseBody);
       responseData.body = enhancedBody.sanitized;
+      responseData.bodyActual = enhancedBody.actual; // Store actual values for reference
       responseData.bodyTypes = enhancedBody.types;
       responseData.hasSensitiveData = enhancedBody.hasSensitiveData;
       responseData.sensitiveFields = enhancedBody.sensitiveFields;
@@ -394,13 +396,14 @@ class EndpointCapture {
    * Enhanced data capture with types and values
    * Captures both sanitized data and data types with actual values
    * @param {Object} body - Request/response body to analyze
-   * @returns {Object} Enhanced data with types and sanitized values
+   * @returns {Object} Enhanced data with types, sanitized values, and actual values
    * @private
    */
   _enhanceDataCapture(body) {
     if (!body || typeof body !== 'object') {
       return {
         sanitized: body,
+        actual: body,
         types: this._getDataType(body),
         hasSensitiveData: false
       };
@@ -408,12 +411,13 @@ class EndpointCapture {
 
     const result = {
       sanitized: _.cloneDeep(body),
+      actual: _.cloneDeep(body), // Store actual values for reference
       types: _.cloneDeep(body),
       hasSensitiveData: false,
       sensitiveFields: []
     };
 
-    this._recursiveEnhance(result.sanitized, result.types, result, []);
+    this._recursiveEnhance(result.sanitized, result.actual, result.types, result, []);
 
     return result;
   }
@@ -421,16 +425,17 @@ class EndpointCapture {
   /**
    * Recursively enhance data capture with types and sensitive field detection
    * @param {Object|Array} sanitized - Sanitized data object
+   * @param {Object|Array} actual - Actual data object (unchanged)
    * @param {Object|Array} types - Types data object
    * @param {Object} result - Result object to update
    * @param {Array} path - Current path in object
    * @private
    */
-  _recursiveEnhance(sanitized, types, result, path) {
+  _recursiveEnhance(sanitized, actual, types, result, path) {
     if (Array.isArray(sanitized)) {
       sanitized.forEach((item, index) => {
         if (item && typeof item === 'object') {
-          this._recursiveEnhance(item, types[index], result, [...path, index]);
+          this._recursiveEnhance(item, actual[index], types[index], result, [...path, index]);
         } else {
           types[index] = this._getDataType(item);
         }
@@ -450,13 +455,14 @@ class EndpointCapture {
           result.sensitiveFields.push({
             path: currentPath.join('.'),
             field: key,
-            type: this._getDataType(sanitized[key])
+            type: this._getDataType(sanitized[key]),
+            actualValue: actual[key] // Store actual value for reference
           });
           sanitized[key] = '[REDACTED]';
           types[key] = this._getDataType(sanitized[key]);
         } else {
           if (sanitized[key] && typeof sanitized[key] === 'object') {
-            this._recursiveEnhance(sanitized[key], types[key], result, currentPath);
+            this._recursiveEnhance(sanitized[key], actual[key], types[key], result, currentPath);
           } else {
             types[key] = this._getDataType(sanitized[key]);
           }
