@@ -393,22 +393,25 @@ class OpenAPIGenerator {
       }
     };
 
-    // Add examples with both sanitized and actual values
+    // Add examples with actual values prioritized over sanitized values
     if (this.options.includeExamples) {
-      content[contentType].examples = {
-        sanitized: {
+      content[contentType].examples = {};
+
+      // Prioritize actual values as the main example
+      if (request.bodyActual) {
+        content[contentType].examples.actual = {
+          summary: 'Actual Request Body (Real captured data)',
+          description: 'Complete request body with actual values from captured request',
+          value: request.bodyActual
+        };
+      }
+
+      // Add sanitized values as secondary example
+      if (request.body) {
+        content[contentType].examples.sanitized = {
           summary: 'Sanitized Request Body (Safe to store)',
           description: 'Request body with sensitive data redacted',
           value: request.body
-        }
-      };
-
-      // Add actual values if available
-      if (request.bodyActual) {
-        content[contentType].examples.actual = {
-          summary: 'Actual Request Body (For reference)',
-          description: 'Complete request body with actual values',
-          value: request.bodyActual
         };
       }
 
@@ -533,22 +536,25 @@ class OpenAPIGenerator {
       }
     };
 
-    // Add examples with both sanitized and actual values
+    // Add examples with actual values prioritized over sanitized values
     if (this.options.includeExamples) {
-      content[contentType].examples = {
-        sanitized: {
+      content[contentType].examples = {};
+
+      // Prioritize actual values as the main example
+      if (response.bodyActual) {
+        content[contentType].examples.actual = {
+          summary: 'Actual Response Body (Real captured data)',
+          description: 'Complete response body with actual values from captured response',
+          value: response.bodyActual
+        };
+      }
+
+      // Add sanitized values as secondary example
+      if (response.body) {
+        content[contentType].examples.sanitized = {
           summary: 'Sanitized Response Body (Safe to store)',
           description: 'Response body with sensitive data redacted',
           value: response.body
-        }
-      };
-
-      // Add actual values if available
-      if (response.bodyActual) {
-        content[contentType].examples.actual = {
-          summary: 'Actual Response Body (For reference)',
-          description: 'Complete response body with actual values',
-          value: response.bodyActual
         };
       }
 
@@ -631,7 +637,10 @@ class OpenAPIGenerator {
     }
 
     if (typeof data === 'boolean') {
-      return { type: 'boolean' };
+      return { 
+        type: 'boolean',
+        example: data
+      };
     }
 
     if (typeof data === 'number') {
@@ -663,7 +672,8 @@ class OpenAPIGenerator {
       }
       return {
         type: 'array',
-        items: this.generateSchemaFromData(data[0])
+        items: this.generateSchemaFromData(data[0]),
+        example: data
       };
     }
 
