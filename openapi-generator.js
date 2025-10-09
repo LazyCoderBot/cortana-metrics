@@ -395,6 +395,14 @@ class OpenAPIGenerator {
 
     // Add examples with actual values prioritized over sanitized values
     if (this.options.includeExamples) {
+      // Use simple example format for Postman compatibility
+      if (request.bodyActual) {
+        content[contentType].example = request.bodyActual;
+      } else if (request.body) {
+        content[contentType].example = request.body;
+      }
+
+      // Also add detailed examples for Swagger UI compatibility
       content[contentType].examples = {};
 
       // Prioritize actual values as the main example
@@ -538,6 +546,26 @@ class OpenAPIGenerator {
 
     // Add examples with actual values prioritized over sanitized values
     if (this.options.includeExamples) {
+      // Use simple example format for Postman compatibility
+      if (response.bodyActual) {
+        // Try to parse JSON response for better Postman compatibility
+        try {
+          const parsedResponse = JSON.parse(response.bodyActual);
+          content[contentType].example = parsedResponse;
+        } catch (e) {
+          // If not JSON, use as string
+          content[contentType].example = response.bodyActual;
+        }
+      } else if (response.body) {
+        try {
+          const parsedResponse = JSON.parse(response.body);
+          content[contentType].example = parsedResponse;
+        } catch (e) {
+          content[contentType].example = response.body;
+        }
+      }
+
+      // Also add detailed examples for Swagger UI compatibility
       content[contentType].examples = {};
 
       // Prioritize actual values as the main example
@@ -584,12 +612,24 @@ class OpenAPIGenerator {
 
     const headers = {};
     Object.keys(response.headers).forEach(headerName => {
-      headers[headerName] = {
-        description: `Response header: ${headerName}`,
-        schema: {
-          type: 'string'
-        }
-      };
+      // Only include standard HTTP headers, skip Express-specific headers
+      const standardHeaders = [
+        'content-type', 'content-length', 'content-encoding', 'content-language',
+        'cache-control', 'expires', 'last-modified', 'etag', 'location',
+        'set-cookie', 'www-authenticate', 'authorization', 'accept-ranges',
+        'age', 'allow', 'connection', 'date', 'pragma', 'retry-after',
+        'server', 'trailer', 'transfer-encoding', 'upgrade', 'vary', 'via', 'warning'
+      ];
+      
+      const lowerHeaderName = headerName.toLowerCase();
+      if (standardHeaders.includes(lowerHeaderName) || lowerHeaderName.startsWith('x-')) {
+        headers[headerName] = {
+          description: `Response header: ${headerName}`,
+          schema: {
+            type: 'string'
+          }
+        };
+      }
     });
 
     return headers;
@@ -688,12 +728,18 @@ class OpenAPIGenerator {
         }
       });
 
-      return {
+      const schema = {
         type: 'object',
         properties,
-        required: required.length > 0 ? required : undefined,
         example: data
       };
+      
+      // Only include required field if there are required properties
+      if (required.length > 0) {
+        schema.required = required;
+      }
+      
+      return schema;
     }
 
     return { type: 'string' };
