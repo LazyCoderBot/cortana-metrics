@@ -48,8 +48,8 @@ class EndpointCapture {
       captureCookies: options.captureCookies !== false,
       captureTiming: options.captureTiming !== false,
       maxBodySize: options.maxBodySize || 1024 * 1024, // 1MB default
-      sensitiveHeaders: options.sensitiveHeaders || ['authorization', 'cookie', 'x-api-key'],
-      sensitiveFields: options.sensitiveFields || ['password', 'token', 'secret', 'key'],
+      sensitiveHeaders: options.sensitiveHeaders || [],
+      sensitiveFields: options.sensitiveFields || [],
       timestampFormat: options.timestampFormat || 'YYYY-MM-DD HH:mm:ss.SSS',
       // OpenAPI specification options
       generateOpenAPISpec: options.generateOpenAPISpec !== false,
@@ -188,9 +188,13 @@ class EndpointCapture {
       requestData.cookies = req.cookies;
     }
 
-    // Capture request body
+    // Capture request body with enhanced data analysis
     if (this.options.captureRequestBody && req.body) {
-      requestData.body = this._sanitizeBody(req.body);
+      const enhancedBody = this._enhanceDataCapture(req.body);
+      requestData.body = enhancedBody.sanitized;
+      requestData.bodyTypes = enhancedBody.types;
+      requestData.hasSensitiveData = enhancedBody.hasSensitiveData;
+      requestData.sensitiveFields = enhancedBody.sensitiveFields;
     }
 
     // Capture user agent and other request info
@@ -243,9 +247,13 @@ class EndpointCapture {
       responseData.headers = this._sanitizeHeaders(res.getHeaders());
     }
 
-    // Capture response body if available
+    // Capture response body with enhanced data analysis
     if (this.options.captureResponseBody && res.locals && res.locals.responseBody) {
-      responseData.body = this._sanitizeBody(res.locals.responseBody);
+      const enhancedBody = this._enhanceDataCapture(res.locals.responseBody);
+      responseData.body = enhancedBody.sanitized;
+      responseData.bodyTypes = enhancedBody.types;
+      responseData.hasSensitiveData = enhancedBody.hasSensitiveData;
+      responseData.sensitiveFields = enhancedBody.sensitiveFields;
     }
 
     return responseData;
@@ -380,6 +388,169 @@ class EndpointCapture {
     this._recursiveSanitize(sanitized);
 
     return sanitized;
+  }
+
+  /**
+   * Enhanced data capture with types and values
+   * Captures both sanitized data and data types with actual values
+   * @param {Object} body - Request/response body to analyze
+   * @returns {Object} Enhanced data with types and sanitized values
+   * @private
+   */
+  _enhanceDataCapture(body) {
+    if (!body || typeof body !== 'object') {
+      return {
+        sanitized: body,
+        types: this._getDataType(body),
+        hasSensitiveData: false
+      };
+    }
+
+    const result = {
+      sanitized: _.cloneDeep(body),
+      types: _.cloneDeep(body),
+      hasSensitiveData: false,
+      sensitiveFields: []
+    };
+
+    this._recursiveEnhance(result.sanitized, result.types, result, []);
+
+    return result;
+  }
+
+  /**
+   * Recursively enhance data capture with types and sensitive field detection
+   * @param {Object|Array} sanitized - Sanitized data object
+   * @param {Object|Array} types - Types data object
+   * @param {Object} result - Result object to update
+   * @param {Array} path - Current path in object
+   * @private
+   */
+  _recursiveEnhance(sanitized, types, result, path) {
+    if (Array.isArray(sanitized)) {
+      sanitized.forEach((item, index) => {
+        if (item && typeof item === 'object') {
+          this._recursiveEnhance(item, types[index], result, [...path, index]);
+        } else {
+          types[index] = this._getDataType(item);
+        }
+      });
+    } else if (sanitized && typeof sanitized === 'object') {
+      Object.keys(sanitized).forEach(key => {
+        const currentPath = [...path, key];
+        const lowerKey = key.toLowerCase();
+        
+        // Check if field is sensitive
+        const isSensitive = this.options.sensitiveFields.some(field => 
+          lowerKey.includes(field.toLowerCase())
+        );
+        
+        if (isSensitive) {
+          result.hasSensitiveData = true;
+          result.sensitiveFields.push({
+            path: currentPath.join('.'),
+            field: key,
+            type: this._getDataType(sanitized[key])
+          });
+          sanitized[key] = '[REDACTED]';
+          types[key] = this._getDataType(sanitized[key]);
+        } else {
+          if (sanitized[key] && typeof sanitized[key] === 'object') {
+            this._recursiveEnhance(sanitized[key], types[key], result, currentPath);
+          } else {
+            types[key] = this._getDataType(sanitized[key]);
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Get data type of a value
+   * @param {*} value - Value to analyze
+   * @returns {string} Data type description
+   * @private
+   */
+  _getDataType(value) {
+    if (value === null) return 'null';
+    if (value === undefined) return 'undefined';
+    if (typeof value === 'boolean') return 'boolean';
+    if (typeof value === 'number') {
+      return Number.isInteger(value) ? 'integer' : 'number';
+    }
+    if (typeof value === 'string') {
+      // Enhanced string type detection
+      if (this._isEmail(value)) return 'email';
+      if (this._isUrl(value)) return 'url';
+      if (this._isDate(value)) return 'date';
+      if (this._isUuid(value)) return 'uuid';
+      if (this._isJson(value)) return 'json_string';
+      return 'string';
+    }
+    if (Array.isArray(value)) return 'array';
+    if (typeof value === 'object') return 'object';
+    return typeof value;
+  }
+
+  /**
+   * Check if string is an email
+   * @param {string} str - String to check
+   * @returns {boolean} True if email
+   * @private
+   */
+  _isEmail(str) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+  }
+
+  /**
+   * Check if string is a URL
+   * @param {string} str - String to check
+   * @returns {boolean} True if URL
+   * @private
+   */
+  _isUrl(str) {
+    try {
+      new URL(str);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Check if string is a date
+   * @param {string} str - String to check
+   * @returns {boolean} True if date
+   * @private
+   */
+  _isDate(str) {
+    const date = new Date(str);
+    return !isNaN(date.getTime()) && str.length > 4;
+  }
+
+  /**
+   * Check if string is a UUID
+   * @param {string} str - String to check
+   * @returns {boolean} True if UUID
+   * @private
+   */
+  _isUuid(str) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+  }
+
+  /**
+   * Check if string is JSON
+   * @param {string} str - String to check
+   * @returns {boolean} True if JSON
+   * @private
+   */
+  _isJson(str) {
+    try {
+      JSON.parse(str);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**

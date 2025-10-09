@@ -378,14 +378,14 @@ const capture = new EndpointCapture({
   maxBodySize: 1024 * 1024,        // Maximum body size to capture (default: 1MB)
   timestampFormat: 'YYYY-MM-DD HH:mm:ss.SSS', // Timestamp format
   
-  // Security settings
-  sensitiveHeaders: [              // Headers to redact
+  // Security settings (user-defined - no defaults)
+  sensitiveHeaders: [              // Headers to redact (configure as needed)
     'authorization',
     'cookie',
     'x-api-key',
     'x-auth-token'
   ],
-  sensitiveFields: [               // Body fields to redact
+  sensitiveFields: [               // Body fields to redact (configure as needed)
     'password',
     'token',
     'secret',
@@ -1601,19 +1601,30 @@ if (process.env.NODE_ENV === 'production') {
 
 ## 🔒 Security Considerations
 
-The module automatically sanitizes sensitive data by default:
+The module provides **user-defined sensitive data protection** - you have full control over what gets redacted:
 
-- **Headers**: `authorization`, `cookie`, `x-api-key`
-- **Body Fields**: `password`, `token`, `secret`, `key`
-
-You can customize these lists in the configuration:
+**No Default Sensitive Fields** - You must explicitly configure what you consider sensitive:
 
 ```javascript
 const capture = new EndpointCapture({
-  sensitiveHeaders: ['authorization', 'cookie', 'x-api-key', 'x-auth-token'],
-  sensitiveFields: ['password', 'token', 'secret', 'key', 'ssn', 'creditCard']
+  // Define your own sensitive headers
+  sensitiveHeaders: [
+    'authorization', 'cookie', 'x-api-key', 'x-auth-token',
+    'x-session-token', 'x-csrf-token'
+  ],
+  // Define your own sensitive body fields  
+  sensitiveFields: [
+    'password', 'token', 'secret', 'key', 'apiKey', 'accessToken',
+    'ssn', 'creditCard', 'cvv', 'privateKey', 'sessionId'
+  ]
 });
 ```
+
+**Benefits of User-Defined Configuration:**
+- ✅ **Full Control**: You decide what's sensitive for your use case
+- ✅ **No Assumptions**: Library doesn't make assumptions about your data
+- ✅ **Flexible**: Add/remove patterns as needed
+- ✅ **Secure**: Only redacts what you explicitly define
 
 ## Performance Considerations
 
