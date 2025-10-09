@@ -20,6 +20,14 @@ class S3Storage extends BaseStorage {
       this.prefix += '/';
     }
     
+    // Validate credential configuration early
+    if (this.accessKeyId && !this.secretAccessKey) {
+      throw new Error('secretAccessKey is required when accessKeyId is provided');
+    }
+    if (this.secretAccessKey && !this.accessKeyId) {
+      throw new Error('accessKeyId is required when secretAccessKey is provided');
+    }
+    
     this.s3Client = null;
     this.initialized = false;
   }
@@ -38,13 +46,30 @@ class S3Storage extends BaseStorage {
       // Dynamically import AWS SDK v3
       const { S3Client, HeadBucketCommand } = await import('@aws-sdk/client-s3');
       
-      this.s3Client = new S3Client({
-        region: this.region,
-        credentials: {
+      // Build S3 client configuration
+      const clientConfig = {
+        region: this.region
+      };
+
+      // Only set explicit credentials if both accessKeyId and secretAccessKey are provided
+      // This allows IAM roles and other credential providers to work automatically
+      if (this.accessKeyId && this.secretAccessKey) {
+        clientConfig.credentials = {
           accessKeyId: this.accessKeyId,
           secretAccessKey: this.secretAccessKey
-        }
-      });
+        };
+      }
+      // If only one credential is provided, it's invalid - let AWS SDK handle credential resolution
+      else if (this.accessKeyId || this.secretAccessKey) {
+        throw new Error('Both accessKeyId and secretAccessKey must be provided together, or neither for automatic credential resolution (IAM roles, etc.)');
+      }
+      // If neither is provided, AWS SDK will automatically resolve credentials from:
+      // - Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+      // - IAM roles (for EC2 instances, ECS tasks, Lambda functions)
+      // - AWS credential files (~/.aws/credentials)
+      // - Other credential providers
+
+      this.s3Client = new S3Client(clientConfig);
 
       // Test bucket access
       await this.s3Client.send(new HeadBucketCommand({ Bucket: this.bucket }));

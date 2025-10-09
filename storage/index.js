@@ -115,11 +115,13 @@ class StorageFactory {
         if (!options.bucket) {
           result.errors.push('bucket is required for S3 storage');
         }
-        if (!options.accessKeyId && !process.env.AWS_ACCESS_KEY_ID) {
-          result.errors.push('accessKeyId or AWS_ACCESS_KEY_ID environment variable is required');
+        // Credentials are optional when using IAM roles or other AWS credential providers
+        // Only validate if explicit credentials are provided but incomplete
+        if (options.accessKeyId && !options.secretAccessKey) {
+          result.errors.push('secretAccessKey is required when accessKeyId is provided');
         }
-        if (!options.secretAccessKey && !process.env.AWS_SECRET_ACCESS_KEY) {
-          result.errors.push('secretAccessKey or AWS_SECRET_ACCESS_KEY environment variable is required');
+        if (options.secretAccessKey && !options.accessKeyId) {
+          result.errors.push('accessKeyId is required when secretAccessKey is provided');
         }
         break;
         

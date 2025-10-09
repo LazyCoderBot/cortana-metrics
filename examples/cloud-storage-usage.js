@@ -14,7 +14,11 @@ const s3Capture = new EndpointCapture({
         bucket: 'my-api-collections',
         region: 'us-east-1',
         prefix: 'openapi-specs/',
-        // Credentials can be provided here or via environment variables
+        // Credentials are optional - supports multiple authentication methods:
+        // 1. IAM roles (recommended for EC2, ECS, Lambda)
+        // 2. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+        // 3. AWS credential files (~/.aws/credentials)
+        // 4. Explicit credentials (less secure)
         // accessKeyId: 'your-access-key',
         // secretAccessKey: 'your-secret-key'
       }
@@ -223,11 +227,16 @@ app.listen(PORT, () => {
   console.log('STORAGE_TYPE=s3|azure|gcs|local');
   console.log('');
   console.log('S3 Configuration:');
-  console.log('AWS_ACCESS_KEY_ID=your-access-key');
-  console.log('AWS_SECRET_ACCESS_KEY=your-secret-key');
   console.log('S3_BUCKET=your-bucket-name');
   console.log('AWS_REGION=us-east-1');
   console.log('S3_PREFIX=openapi-specs/');
+  console.log('');
+  console.log('S3 Authentication (choose one):');
+  console.log('1. IAM Role (recommended for EC2/ECS/Lambda): No env vars needed');
+  console.log('2. Environment variables:');
+  console.log('   AWS_ACCESS_KEY_ID=your-access-key');
+  console.log('   AWS_SECRET_ACCESS_KEY=your-secret-key');
+  console.log('3. AWS credential file: ~/.aws/credentials');
   console.log('');
   console.log('Azure Configuration:');
   console.log('AZURE_STORAGE_CONNECTION_STRING=your-connection-string');
