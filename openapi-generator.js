@@ -51,6 +51,9 @@ class OpenAPIGenerator {
       ...options
     };
 
+    // Store reference to storage instance if provided
+    this.storage = options.storage || null;
+
     this.spec = this.createBaseSpec();
     this.endpointVersions = new Map(); // Track versions of each endpoint
     this.endpointHashes = new Map(); // Track endpoint content hashes for change detection
@@ -122,7 +125,7 @@ class OpenAPIGenerator {
    * @param {Object} [options={}] - Additional options
    * @returns {Object} The added path item
    */
-  addEndpoint(endpointData, options = {}) {
+  async addEndpoint(endpointData, options = {}) {
     try {
       // Store original path before normalization
       const originalPath = endpointData.request.path;
@@ -170,7 +173,7 @@ class OpenAPIGenerator {
 
       // Auto-save if enabled
       if (this.options.autoSave) {
-        this.saveSpec();
+        await this.saveSpec();
       }
 
       return pathItem;
@@ -682,19 +685,26 @@ class OpenAPIGenerator {
    * Save OpenAPI specification to file
    * @param {string} [filename] - Custom filename
    */
-  saveSpec(filename) {
+  async saveSpec(filename) {
     try {
       const outputPath = this.getOutputPath(filename);
       const specJson = JSON.stringify(this.spec, null, 2);
       
-      // Ensure directory exists
-      const dir = path.dirname(outputPath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      if (this.storage) {
+        // Use storage abstraction (S3, Azure, GCS, etc.)
+        const relativePath = path.relative(this.options.outputDir, outputPath);
+        await this.storage.writeFile(relativePath, specJson);
+        console.log(`💾 OpenAPI spec saved to storage: ${relativePath} (${specJson.length} bytes)`);
+      } else {
+        // Fallback to local filesystem
+        const dir = path.dirname(outputPath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        
+        fs.writeFileSync(outputPath, specJson);
+        console.log(`💾 OpenAPI spec saved to: ${outputPath} (${specJson.length} bytes)`);
       }
-      
-      fs.writeFileSync(outputPath, specJson);
-      console.log(`💾 OpenAPI spec saved to: ${outputPath} (${specJson.length} bytes)`);
     } catch (error) {
       console.error('❌ Error saving OpenAPI spec:', error);
       throw error;

@@ -159,7 +159,10 @@ class CollectionManager {
         collectionOptions.outputDir = path.join(this.options.baseDir, this.sanitizeName(name));
       }
 
-      const generator = new OpenAPIGenerator(collectionOptions);
+      const generator = new OpenAPIGenerator({
+        ...collectionOptions,
+        storage: this.storage
+      });
 
       // Try to load existing collection
       let existingPath;
@@ -200,7 +203,7 @@ class CollectionManager {
    * @returns {Object} The added request object
    * @throws {Error} When adding the endpoint fails
    */
-  addEndpoint(collectionName, endpointData, options = {}) {
+  async addEndpoint(collectionName, endpointData, options = {}) {
     try {
       const collection = this.getCollection(collectionName, options);
       const pathItem = collection.addEndpoint(endpointData, options);
@@ -215,7 +218,7 @@ class CollectionManager {
 
       // Ensure the collection is saved immediately after adding endpoint
       if (collection.options.autoSave) {
-        collection.saveSpec();
+        await collection.saveSpec();
       }
 
       return pathItem;
@@ -406,9 +409,10 @@ class CollectionManager {
    * @returns {OpenAPIGenerator} The merged specification generator
    * @throws {Error} When merge operation fails
    */
-  mergeCollections(collectionNames, targetName, options = {}) {
+  async mergeCollections(collectionNames, targetName, options = {}) {
     try {
       const mergedGenerator = new OpenAPIGenerator({
+        storage: this.storage,
         ...this.options.defaultCollectionOptions,
         title: targetName,
         outputDir: path.join(this.options.baseDir, this.sanitizeName(targetName)),
@@ -455,7 +459,7 @@ class CollectionManager {
       });
 
       // Save merged specification
-      mergedGenerator.saveSpec();
+      await mergedGenerator.saveSpec();
       this.collections.set(targetName, mergedGenerator);
 
       console.log(`Merged collections into: ${targetName}`);
