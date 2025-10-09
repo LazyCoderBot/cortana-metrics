@@ -205,6 +205,27 @@ class OpenAPIGenerator {
       deprecated: false
     };
 
+    // Add custom extensions for actual values and sensitive data metadata
+    if (request.bodyActual || request.hasSensitiveData) {
+      operation['x-actual-data'] = {
+        requestBody: request.bodyActual || null,
+        hasSensitiveData: request.hasSensitiveData || false,
+        sensitiveFields: request.sensitiveFields || [],
+        dataTypes: request.bodyTypes || null,
+        capturedAt: endpointData.metadata?.capturedAt || new Date().toISOString()
+      };
+    }
+
+    if (response.bodyActual || response.hasSensitiveData) {
+      operation['x-actual-data'] = {
+        ...operation['x-actual-data'],
+        responseBody: response.bodyActual || null,
+        responseHasSensitiveData: response.hasSensitiveData || false,
+        responseSensitiveFields: response.sensitiveFields || [],
+        responseDataTypes: response.bodyTypes || null
+      };
+    }
+
     // Add requestBody only for methods that support it
     const requestBody = this.generateRequestBody(request);
     if (requestBody) {
@@ -366,13 +387,44 @@ class OpenAPIGenerator {
     const contentType = request.contentType || 'application/json';
     const schema = this.generateSchemaFromData(request.body);
 
+    const content = {
+      [contentType]: {
+        schema: schema
+      }
+    };
+
+    // Add examples with both sanitized and actual values
+    if (this.options.includeExamples) {
+      content[contentType].examples = {
+        sanitized: {
+          summary: 'Sanitized Request Body (Safe to store)',
+          description: 'Request body with sensitive data redacted',
+          value: request.body
+        }
+      };
+
+      // Add actual values if available
+      if (request.bodyActual) {
+        content[contentType].examples.actual = {
+          summary: 'Actual Request Body (For reference)',
+          description: 'Complete request body with actual values',
+          value: request.bodyActual
+        };
+      }
+
+      // Add data types if available
+      if (request.bodyTypes) {
+        content[contentType].examples.types = {
+          summary: 'Data Types Analysis',
+          description: 'Data type analysis for each field',
+          value: request.bodyTypes
+        };
+      }
+    }
+
     return {
       description: 'Request body',
-      content: {
-        [contentType]: {
-          schema: schema
-        }
-      },
+      content: content,
       required: true
     };
   }
@@ -475,17 +527,42 @@ class OpenAPIGenerator {
 
     const schema = this.generateSchemaFromData(response.body);
 
-    return {
+    const content = {
       [contentType]: {
-        schema: schema,
-        examples: this.options.includeExamples ? {
-          example: {
-            summary: 'Example response',
-            value: response.body
-          }
-        } : undefined
+        schema: schema
       }
     };
+
+    // Add examples with both sanitized and actual values
+    if (this.options.includeExamples) {
+      content[contentType].examples = {
+        sanitized: {
+          summary: 'Sanitized Response Body (Safe to store)',
+          description: 'Response body with sensitive data redacted',
+          value: response.body
+        }
+      };
+
+      // Add actual values if available
+      if (response.bodyActual) {
+        content[contentType].examples.actual = {
+          summary: 'Actual Response Body (For reference)',
+          description: 'Complete response body with actual values',
+          value: response.bodyActual
+        };
+      }
+
+      // Add data types if available
+      if (response.bodyTypes) {
+        content[contentType].examples.types = {
+          summary: 'Data Types Analysis',
+          description: 'Data type analysis for each field',
+          value: response.bodyTypes
+        };
+      }
+    }
+
+    return content;
   }
 
   /**
